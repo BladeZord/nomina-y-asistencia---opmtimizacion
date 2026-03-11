@@ -11,6 +11,7 @@ $host     = getenv('DB_HOST') ?: 'localhost';
 $user     = getenv('DB_USER') ?: 'root';
 $password = getenv('DB_PASSWORD') ?: '';
 $database = getenv('DB_NAME') ?: 'apsystem';
+$charset  = getenv('DB_CHARSET') ?: 'utf8mb4';
 
 $conn = new mysqli($host, $user, $password, $database);
 
@@ -21,4 +22,4 @@ if ($conn->connect_error) {
     die('Error de conexión. Contacte al administrador.');
 }
 
-$conn->set_charset('utf8mb4');
+$conn->set_charset($charset);
