@@ -1,4 +1,7 @@
-<?php session_start(); ?>
+<?php
+session_start();
+require_once __DIR__ . '/config/init.php';
+?>
 <?php include 'header.php'; ?>
 <body class="hold-transition login-page">
 <div class="login-box">

@@ -1,116 +1,145 @@
 <?php
-	if(isset($_POST['employee'])){
-		$output = array('error'=>false);
+$output = ['error' => false, 'message' => ''];
 
-		include 'conn.php';
-		include 'timezone.php';
+if (!isset($_POST['employee']) || !isset($_POST['status'])) {
+    echo json_encode($output);
+    exit;
+}
 
-		$employee = $_POST['employee'];
-		$status = $_POST['status'];
+require_once __DIR__ . '/config/init.php';
 
-		$sql = "SELECT * FROM employees WHERE employee_id = '$employee'";
-		$query = $conn->query($sql);
+$employee = trim($_POST['employee']);
+$status   = $_POST['status'] === 'out' ? 'out' : 'in';
 
-		if($query->num_rows > 0){
-			$row = $query->fetch_assoc();
-			$id = $row['id'];
+if ($employee === '') {
+    $output['error'] = true;
+    $output['message'] = 'ID de empleado no encontrado';
+    echo json_encode($output);
+    exit;
+}
 
-			$date_now = date('Y-m-d');
+// Buscar empleado (prepared statement)
+$stmt = $conn->prepare("SELECT id, firstname, lastname, schedule_id FROM employees WHERE employee_id = ?");
+$stmt->bind_param('s', $employee);
+$stmt->execute();
+$res = $stmt->get_result();
+$stmt->close();
 
-			if($status == 'in'){
-				$sql = "SELECT * FROM attendance WHERE employee_id = '$id' AND date = '$date_now' AND time_in IS NOT NULL";
-				$query = $conn->query($sql);
-				if($query->num_rows > 0){
-					$output['error'] = true;
-					$output['message'] = 'Has registrado tu entrada por hoy';
-				}
-				else{
-					//updates
-					$sched = $row['schedule_id'];
-					$lognow = date('H:i:s');
-					$sql = "SELECT * FROM schedules WHERE id = '$sched'";
-					$squery = $conn->query($sql);
-					$srow = $squery->fetch_assoc();
-					$logstatus = ($lognow > $srow['time_in']) ? 0 : 1;
-					//
-					$sql = "INSERT INTO attendance (employee_id, date, time_in, status) VALUES ('$id', '$date_now', NOW(), '$logstatus')";
-					if($conn->query($sql)){
-						$output['message'] = 'Llegada: '.$row['firstname'].' '.$row['lastname'];
-					}
-					else{
-						$output['error'] = true;
-						$output['message'] = $conn->error;
-					}
-				}
-			}
-			else{
-				$sql = "SELECT *, attendance.id AS uid FROM attendance LEFT JOIN employees ON employees.id=attendance.employee_id WHERE attendance.employee_id = '$id' AND date = '$date_now'";
-				$query = $conn->query($sql);
-				if($query->num_rows < 1){
-					$output['error'] = true;
-					$output['message'] = 'No se puede registrar tu salida, sin previamente registrar tu entrada.';
-				}
-				else{
-					$row = $query->fetch_assoc();
-					if($row['time_out'] != '00:00:00'){
-						$output['error'] = true;
-						$output['message'] = 'Has registrado tu salida satisfactoriamente por el día de hoy';
-					}
-					else{
-						
-						$sql = "UPDATE attendance SET time_out = NOW() WHERE id = '".$row['uid']."'";
-						if($conn->query($sql)){
-							$output['message'] = 'Salida: '.$row['firstname'].' '.$row['lastname'];
+if ($res->num_rows === 0) {
+    $output['error'] = true;
+    $output['message'] = 'ID de empleado no encontrado';
+    echo json_encode($output);
+    exit;
+}
 
-							$sql = "SELECT * FROM attendance WHERE id = '".$row['uid']."'";
-							$query = $conn->query($sql);
-							$urow = $query->fetch_assoc();
+$row = $res->fetch_assoc();
+$id = (int) $row['id'];
+$date_now = date('Y-m-d');
 
-							$time_in = $urow['time_in'];
-							$time_out = $urow['time_out'];
+if ($status === 'in') {
+    $st = $conn->prepare("SELECT 1 FROM attendance WHERE employee_id = ? AND date = ? AND time_in IS NOT NULL");
+    $st->bind_param('is', $id, $date_now);
+    $st->execute();
+    $q = $st->get_result();
+    $st->close();
+    if ($q->num_rows > 0) {
+        $output['error'] = true;
+        $output['message'] = 'Has registrado tu entrada por hoy';
+        echo json_encode($output);
+        exit;
+    }
+    $sched = (int) $row['schedule_id'];
+    $st = $conn->prepare("SELECT time_in FROM schedules WHERE id = ?");
+    $st->bind_param('i', $sched);
+    $st->execute();
+    $srow = $st->get_result()->fetch_assoc();
+    $st->close();
+    $lognow = date('H:i:s');
+    $logstatus = ($srow && $lognow > $srow['time_in']) ? 0 : 1;
 
-							$sql = "SELECT * FROM employees LEFT JOIN schedules ON schedules.id=employees.schedule_id WHERE employees.id = '$id'";
-							$query = $conn->query($sql);
-							$srow = $query->fetch_assoc();
+    $ins = $conn->prepare("INSERT INTO attendance (employee_id, date, time_in, status, time_out, num_hr) VALUES (?, ?, NOW(), ?, '00:00:00', 0)");
+    $ins->bind_param('isi', $id, $date_now, $logstatus);
+    if ($ins->execute()) {
+        $output['message'] = 'Llegada: ' . $row['firstname'] . ' ' . $row['lastname'];
+    } else {
+        $output['error'] = true;
+        $output['message'] = 'Error al registrar. Intente de nuevo.';
+    }
+    $ins->close();
+    echo json_encode($output);
+    exit;
+}
 
-							if($srow['time_in'] > $urow['time_in']){
-								$time_in = $srow['time_in'];
-							}
+// status === 'out'
+$st = $conn->prepare("SELECT attendance.id AS uid, time_out, firstname, lastname FROM attendance LEFT JOIN employees ON employees.id = attendance.employee_id WHERE attendance.employee_id = ? AND date = ?");
+$st->bind_param('is', $id, $date_now);
+$st->execute();
+$q = $st->get_result();
+$st->close();
 
-							if($srow['time_out'] < $urow['time_in']){
-								$time_out = $srow['time_out'];
-							}
+if ($q->num_rows < 1) {
+    $output['error'] = true;
+    $output['message'] = 'No se puede registrar tu salida sin haber registrado antes tu entrada.';
+    echo json_encode($output);
+    exit;
+}
 
-							$time_in = new DateTime($time_in);
-							$time_out = new DateTime($time_out);
-							$interval = $time_in->diff($time_out);
-							$hrs = $interval->format('%h');
-							$mins = $interval->format('%i');
-							$mins = $mins/60;
-							$int = $hrs + $mins;
-							if($int > 4){
-								$int = $int - 1;
-							}
+$row = $q->fetch_assoc();
+if ($row['time_out'] !== '00:00:00' && $row['time_out'] !== null) {
+    $output['error'] = true;
+    $output['message'] = 'Has registrado tu salida correctamente hoy.';
+    echo json_encode($output);
+    exit;
+}
 
-							$sql = "UPDATE attendance SET num_hr = '$int' WHERE id = '".$row['uid']."'";
-							$conn->query($sql);
-						}
-						else{
-							$output['error'] = true;
-							$output['message'] = $conn->error;
-						}
-					}
-					
-				}
-			}
-		}
-		else{
-			$output['error'] = true;
-			$output['message'] = 'ID de empleado no encontrado';
-		}
-		
-	}
-	
-	echo json_encode($output);
+$uid = (int) $row['uid'];
+$up = $conn->prepare("UPDATE attendance SET time_out = NOW() WHERE id = ?");
+$up->bind_param('i', $uid);
+if (!$up->execute()) {
+    $output['error'] = true;
+    $output['message'] = 'Error al registrar. Intente de nuevo.';
+    echo json_encode($output);
+    exit;
+}
+$up->close();
 
-?>
+$output['message'] = 'Salida: ' . $row['firstname'] . ' ' . $row['lastname'];
+
+// Calcular num_hr
+$st = $conn->prepare("SELECT time_in, time_out FROM attendance WHERE id = ?");
+$st->bind_param('i', $uid);
+$st->execute();
+$urow = $st->get_result()->fetch_assoc();
+$st->close();
+
+$st = $conn->prepare("SELECT time_in, time_out FROM employees LEFT JOIN schedules ON schedules.id = employees.schedule_id WHERE employees.id = ?");
+$st->bind_param('i', $id);
+$st->execute();
+$srow = $st->get_result()->fetch_assoc();
+$st->close();
+
+$time_in  = $urow['time_in'];
+$time_out = $urow['time_out'];
+if ($srow && $srow['time_in'] && $srow['time_in'] > $urow['time_in']) {
+    $time_in = $srow['time_in'];
+}
+if ($srow && $srow['time_out'] && $srow['time_out'] < $urow['time_in']) {
+    $time_out = $srow['time_out'];
+}
+
+$t1 = new DateTime($time_in);
+$t2 = new DateTime($time_out);
+$interval = $t1->diff($t2);
+$hrs = (float) $interval->format('%h');
+$mins = (float) $interval->format('%i') / 60;
+$int = $hrs + $mins;
+if ($int > 4) {
+    $int = $int - 1;
+}
+
+$up2 = $conn->prepare("UPDATE attendance SET num_hr = ? WHERE id = ?");
+$up2->bind_param('di', $int, $uid);
+$up2->execute();
+$up2->close();
+
+echo json_encode($output);

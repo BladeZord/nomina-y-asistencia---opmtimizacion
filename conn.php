@@ -1,8 +1,3 @@
 <?php
-	$conn = new mysqli('localhost', 'root', '', 'apsystem');
-
-	if ($conn->connect_error) {
-	    die("Connection failed: " . $conn->connect_error);
-	}
-	
-?>
+/** Conexión y configuración central. Usar require_once 'conn.php' o require_once __DIR__.'/../conn.php' desde admin. */
+require_once __DIR__ . '/config/init.php';

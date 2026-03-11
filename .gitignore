@@ -1,0 +1,10 @@
+# No subir credenciales
+.env
+.env.local
+*.env
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

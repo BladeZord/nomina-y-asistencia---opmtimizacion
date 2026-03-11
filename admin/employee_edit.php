@@ -1,29 +1,41 @@
 <?php
-	include 'includes/session.php';
+include 'includes/session.php';
 
-	if(isset($_POST['edit'])){
-		$empid = $_POST['id'];
-		$firstname = $_POST['firstname'];
-		$lastname = $_POST['lastname'];
-		$address = $_POST['address'];
-		$birthdate = $_POST['birthdate'];
-		$contact = $_POST['contact'];
-		$gender = $_POST['gender'];
-		$position = $_POST['position'];
-		$schedule = $_POST['schedule'];
-		
-		$sql = "UPDATE employees SET firstname = '$firstname', lastname = '$lastname', address = '$address', birthdate = '$birthdate', contact_info = '$contact', gender = '$gender', position_id = '$position', schedule_id = '$schedule' WHERE id = '$empid'";
-		if($conn->query($sql)){
-			$_SESSION['success'] = 'Empleado actualizado con éxito';
-		}
-		else{
-			$_SESSION['error'] = $conn->error;
-		}
+if (isset($_POST['edit'])) {
+    if (!validate_csrf()) {
+        $_SESSION['error'] = 'Solicitud no válida. Vuelva a intentar.';
+        header('Location: employee.php');
+        exit;
+    }
 
-	}
-	else{
-		$_SESSION['error'] = 'Seleccionar empleado para editar primero';
-	}
+    $empid    = (int) ($_POST['id'] ?? 0);
+    $firstname = trim($_POST['firstname'] ?? '');
+    $lastname  = trim($_POST['lastname'] ?? '');
+    $address   = trim($_POST['address'] ?? '');
+    $birthdate = $_POST['birthdate'] ?? '';
+    $contact   = trim($_POST['contact'] ?? '');
+    $gender    = $_POST['gender'] ?? '';
+    $position  = (int) ($_POST['position'] ?? 0);
+    $schedule  = (int) ($_POST['schedule'] ?? 0);
 
-	header('location: employee.php');
-?>
+    if ($empid < 1) {
+        $_SESSION['error'] = 'Seleccione un empleado para editar';
+        header('Location: employee.php');
+        exit;
+    }
+
+    $stmt = $conn->prepare("UPDATE employees SET firstname = ?, lastname = ?, address = ?, birthdate = ?, contact_info = ?, gender = ?, position_id = ?, schedule_id = ? WHERE id = ?");
+    $stmt->bind_param('ssssssiii', $firstname, $lastname, $address, $birthdate, $contact, $gender, $position, $schedule, $empid);
+
+    if ($stmt->execute()) {
+        $_SESSION['success'] = 'Empleado actualizado correctamente';
+    } else {
+        $_SESSION['error'] = 'Error al actualizar. Vuelva a intentar.';
+    }
+    $stmt->close();
+} else {
+    $_SESSION['error'] = 'Seleccione un empleado para editar';
+}
+
+header('Location: employee.php');
+exit;

@@ -21,28 +21,7 @@
     </section>
     <!-- Main content -->
     <section class="content">
-      <?php
-        if(isset($_SESSION['error'])){
-          echo "
-            <div class='alert alert-danger alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
-              <h4><i class='icon fa fa-warning'></i> Error!</h4>
-              ".$_SESSION['error']."
-            </div>
-          ";
-          unset($_SESSION['error']);
-        }
-        if(isset($_SESSION['success'])){
-          echo "
-            <div class='alert alert-success alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
-              <h4><i class='icon fa fa-check'></i>¡Proceso Exitoso!</h4>
-              ".$_SESSION['success']."
-            </div>
-          ";
-          unset($_SESSION['success']);
-        }
-      ?>
+      <?php include 'includes/alerts.php'; ?>
       <div class="row">
         <div class="col-xs-12">
           <div class="box">
@@ -67,15 +46,15 @@
                     while($row = $query->fetch_assoc()){
                       ?>
                         <tr>
-                          <td><?php echo $row['employee_id']; ?></td>
-                          <td><img src="<?php echo (!empty($row['photo']))? '../images/'.$row['photo']:'../images/profile.jpg'; ?>" width="30px" height="30px"> <a href="#edit_photo" data-toggle="modal" class="pull-right photo" data-id="<?php echo $row['empid']; ?>"><span class="fa fa-edit"></span></a></td>
-                          <td><?php echo $row['firstname'].' '.$row['lastname']; ?></td>
-                          <td><?php echo $row['description']; ?></td>
-                          <td><?php echo date('h:i A', strtotime($row['time_in'])).' - '.date('h:i A', strtotime($row['time_out'])); ?></td>
-                          <td><?php echo date('M d, Y', strtotime($row['created_on'])) ?></td>
+                          <td><?php echo h($row['employee_id']); ?></td>
+                          <td><img src="<?php echo h(!empty($row['photo']) ? '../images/'.$row['photo'] : '../images/profile.jpg'); ?>" width="30px" height="30px" alt=""> <a href="#edit_photo" data-toggle="modal" class="pull-right photo" data-id="<?php echo h($row['empid']); ?>"><span class="fa fa-edit"></span></a></td>
+                          <td><?php echo h($row['firstname'].' '.$row['lastname']); ?></td>
+                          <td><?php echo h($row['description']); ?></td>
+                          <td><?php echo h(date('h:i A', strtotime($row['time_in'])).' - '.date('h:i A', strtotime($row['time_out']))); ?></td>
+                          <td><?php echo h(date('M d, Y', strtotime($row['created_on']))); ?></td>
                           <td>
-                            <button class="btn btn-success btn-sm edit btn-flat" data-id="<?php echo $row['empid']; ?>"><i class="fa fa-edit"></i> Editar</button>
-                            <button class="btn btn-danger btn-sm delete btn-flat" data-id="<?php echo $row['empid']; ?>"><i class="fa fa-trash"></i> Eliminar</button>
+                            <button class="btn btn-success btn-sm edit btn-flat" data-id="<?php echo h($row['empid']); ?>"><i class="fa fa-edit"></i> Editar</button>
+                            <button class="btn btn-danger btn-sm delete btn-flat" data-id="<?php echo h($row['empid']); ?>"><i class="fa fa-trash"></i> Eliminar</button>
                           </td>
                         </tr>
                       <?php

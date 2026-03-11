@@ -9,6 +9,7 @@
           	</div>
           	<div class="modal-body">
             	<form class="form-horizontal" method="POST" action="employee_add.php" enctype="multipart/form-data">
+          		  <?php csrf_field(); ?>
           		  <div class="form-group">
                   	<label for="firstname" class="col-sm-3 control-label">Nombre</label>
 
@@ -66,10 +67,8 @@
                         <?php
                           $sql = "SELECT * FROM position";
                           $query = $conn->query($sql);
-                          while($prow = $query->fetch_assoc()){
-                            echo "
-                              <option value='".$prow['id']."'>".$prow['description']."</option>
-                            ";
+                          while ($prow = $query->fetch_assoc()) {
+                            echo '<option value="'.h($prow['id']).'">'.h($prow['description']).'</option>';
                           }
                         ?>
                       </select>
@@ -84,10 +83,8 @@
                         <?php
                           $sql = "SELECT * FROM schedules";
                           $query = $conn->query($sql);
-                          while($srow = $query->fetch_assoc()){
-                            echo "
-                              <option value='".$srow['id']."'>".$srow['time_in'].' - '.$srow['time_out']."</option>
-                            ";
+                          while ($srow = $query->fetch_assoc()) {
+                            echo '<option value="'.h($srow['id']).'">'.h($srow['time_in'].' - '.$srow['time_out']).'</option>';
                           }
                         ?>
                       </select>
@@ -121,6 +118,7 @@
           	</div>
           	<div class="modal-body">
             	<form class="form-horizontal" method="POST" action="employee_edit.php">
+            		<?php csrf_field(); ?>
             		<input type="hidden" class="empid" name="id">
                 <div class="form-group">
                     <label for="edit_firstname" class="col-sm-3 control-label">Nombre</label>
@@ -179,10 +177,8 @@
                         <?php
                           $sql = "SELECT * FROM position";
                           $query = $conn->query($sql);
-                          while($prow = $query->fetch_assoc()){
-                            echo "
-                              <option value='".$prow['id']."'>".$prow['description']."</option>
-                            ";
+                          while ($prow = $query->fetch_assoc()) {
+                            echo '<option value="'.h($prow['id']).'">'.h($prow['description']).'</option>';
                           }
                         ?>
                       </select>
@@ -197,10 +193,8 @@
                         <?php
                           $sql = "SELECT * FROM schedules";
                           $query = $conn->query($sql);
-                          while($srow = $query->fetch_assoc()){
-                            echo "
-                              <option value='".$srow['id']."'>".$srow['time_in'].' - '.$srow['time_out']."</option>
-                            ";
+                          while ($srow = $query->fetch_assoc()) {
+                            echo '<option value="'.h($srow['id']).'">'.h($srow['time_in'].' - '.$srow['time_out']).'</option>';
                           }
                         ?>
                       </select>
@@ -227,6 +221,7 @@
           	</div>
           	<div class="modal-body">
             	<form class="form-horizontal" method="POST" action="employee_delete.php">
+            		<?php csrf_field(); ?>
             		<input type="hidden" class="empid" name="id">
             		<div class="text-center">
 	                	<p>ELIMINAR EMPLEADO</p>
@@ -253,6 +248,7 @@
             </div>
             <div class="modal-body">
               <form class="form-horizontal" method="POST" action="employee_edit_photo.php" enctype="multipart/form-data">
+                <?php csrf_field(); ?>
                 <input type="hidden" class="empid" name="id">
                 <div class="form-group">
                     <label for="photo" class="col-sm-3 control-label">Foto</label>
