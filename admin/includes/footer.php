@@ -1,6 +1,6 @@
 <footer class="main-footer">
     <div class="pull-right hidden-xs">
-      <b>By <a href="https://www.configuroweb.com/">ConfiguroWeb</a></b>
+      <span class="text-muted"><?php echo defined('APP_NAME') ? h(APP_NAME) : 'Sistema de Asistencia'; ?></span>
     </div>
-    <strong>Copyright &copy; 2020 Control de Asistencia y Sistema de Nómina </strong>
+    <strong>Copyright &copy; <?php echo date('Y'); ?> <?php echo defined('APP_NAME') ? h(APP_NAME) : 'Control de Asistencia'; ?></strong>
 </footer>

@@ -2,9 +2,8 @@
     <!-- Logo -->
     <a href="home.php" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><b>C</b>W</span>
-      <!-- logo for regular state and mobile devices -->
-      <span class="logo-lg"><b>Configuro</b>Web</span>
+      <span class="logo-mini"><b>A</b></span>
+      <span class="logo-lg"><?php echo defined('APP_NAME') ? h(APP_NAME) : 'Admin'; ?></span>
     </a>
     <!-- Header Navbar: style can be found in header.less -->
     <nav class="navbar navbar-static-top">

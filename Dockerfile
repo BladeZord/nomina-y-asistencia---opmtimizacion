@@ -1,21 +1,21 @@
 FROM php:8.2-apache
 
-# Instalar extensiones necesarias (mysqli para MySQL)
-RUN apt-get update && apt-get install -y default-mysql-client \
+# Instalar dependencias del sistema, git y extensión mysqli
+RUN apt-get update && apt-get install -y \
+    default-mysql-client \
+    git \
     && docker-php-ext-install mysqli \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-
-# Establecer el directorio de trabajo
+# Directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar el proyecto al contenedor
-COPY . /var/www/html
+# Clonar el proyecto
+RUN git clone https://github.com/BladeZord/nomina-y-asistencia---opmtimizacion.git /var/www/html
 
-# Dar permisos razonables al directorio (ajusta si lo necesitas más estricto)
+# Permisos
 RUN chown -R www-data:www-data /var/www/html
 
-# Exponer el puerto HTTP
+# Exponer puerto HTTP
 EXPOSE 80
-

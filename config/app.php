@@ -11,7 +11,7 @@ if (!defined('APP_CONFIG_LOADED')) {
 define('APP_NAME', getenv('APP_NAME') ?: 'Control de Asistencia y Sistema de Nómina');
 
 // Zona horaria (configurable por entorno)
-$app_timezone = getenv('APP_TIMEZONE') ?: 'America/Bogota';
+$app_timezone = getenv('APP_TIMEZONE') ?: 'America/Guayaquil';
 date_default_timezone_set($app_timezone);
 
 // Charset por defecto

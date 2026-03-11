@@ -14,7 +14,7 @@
         Lista de Empleados
       </h1>
       <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> Inicio</a></li>
+        <li><a href="home.php"><i class="fa fa-dashboard"></i> Inicio</a></li>
         <li>Empleados</li>
         <li class="active">Lista de Empleados</li>
       </ol>

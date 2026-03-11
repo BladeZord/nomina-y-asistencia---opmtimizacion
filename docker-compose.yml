@@ -4,15 +4,21 @@ services:
   app:
     build: .
     container_name: control_asistencia_app
+    restart: always
     ports:
-      - "9001:80"
+      - "${APP_PORT:-9001}:80"
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
-      DB_HOST: db
-      DB_USER: apsystem
-      DB_PASSWORD: apsystem
-      DB_NAME: apsystem
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      APP_NAME: ${APP_NAME}
+      APP_TIMEZONE: ${APP_TIMEZONE}
+      APP_DEBUG: ${APP_DEBUG}
     volumes:
       - .:/var/www/html
 
@@ -20,15 +26,16 @@ services:
     image: mysql:5.7
     container_name: control_asistencia_db
     restart: always
+    ports:
+      - "${DB_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: apsystem
-      MYSQL_USER: apsystem
-      MYSQL_PASSWORD: apsystem
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
       - ./database/apsystem.sql:/docker-entrypoint-initdb.d/apsystem.sql:ro
 
 volumes:
   db_data:
-

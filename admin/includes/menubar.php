@@ -4,10 +4,10 @@
       <!-- Sidebar user panel -->
       <div class="user-panel">
         <div class="pull-left image">
-          <img src="<?php echo (!empty($user['photo'])) ? '../images/'.$user['photo'] : '../images/profile.jpg'; ?>" class="img-circle" alt="User Image">
+          <img src="<?php echo h(!empty($user['photo']) ? '../images/'.$user['photo'] : '../images/profile.jpg'); ?>" class="img-circle" alt="">
         </div>
         <div class="pull-left info">
-          <p><?php echo $user['firstname'].' '.$user['lastname']; ?></p>
+          <p><?php echo h($user['firstname'].' '.$user['lastname']); ?></p>
           <a><i class="fa fa-circle text-success"></i> Online</a>
         </div>
       </div>
